@@ -56,7 +56,6 @@ def correlation_coefficient(x, y):
             math.sqrt(((n * x_sum_pow) - pow(x_sum, 2)) * ((n * y_sum_pow) - pow(y_sum, 2)))
     except:
         r = 0.0
-        print(r)
 
     return r
 #    temp_tourspotvisitor_table = pd.DataFrame(tourspotvisitor_table.groupby('date')['count_foreigner'].sum())
@@ -64,30 +63,60 @@ def correlation_coefficient(x, y):
 def analysis_correlation_by_tourspot(resultfiles):
     results = []
     r_list = []
+    r_dict={}
+    a=0
+    tour_spot_dict = dict()
     with open(resultfiles['tourspot_visitor'], 'r', encoding='utf-8') as infile:
         json_data = json.loads(infile.read())
 
     tourspotvisitor_table = pd.DataFrame(json_data, columns=['count_foreigner', 'date', 'tourist_spot'])
-    tourist_spot_list = tourspotvisitor_table['tourist_spot'].unique()
+    # print(tourspotvisitor_table)
+    tourist_spot_list = tourspotvisitor_table['tourist_spot'].unique() # unique()는 한요소를 가져오면서 리스트를 만들어준다.
+
+    # for a in tourist_spot_list:
+
+
+    # tour_spot_dict = {'tourist_spot': str(temp_table['tourist_spot'].unique())}
     for temp_tourist in tourist_spot_list:
+        tour_spot_dict.update({'tourspot': temp_tourist})
         temp_table = tourspotvisitor_table[tourspotvisitor_table['tourist_spot'] == temp_tourist]
         temp_table = temp_table.set_index('date')
-
-    #########foreign_visitor##########
+        # print(temp_table)
 
         for filename in resultfiles['foreign_visitor']:
             with open(filename, 'r', encoding='utf-8') as infile:
                 json_data = json.loads(infile.read())
-
             foreignvisitor_table = pd.DataFrame(json_data, columns=['country_name', 'date', 'visit_count'])
             foreignvisitor_table = foreignvisitor_table.set_index('date')
+            # print(foreignvisitor_table)
+            foreignvisitor_list = foreignvisitor_table['country_name'].unique()
             merge_table = pd.merge(temp_table, foreignvisitor_table,left_index=True,right_index=True)
-            print(merge_table)
+            # print(merge_table)
+
             x = list(merge_table['visit_count'])
+            # print('x: ',x)
             y = list(merge_table['count_foreigner'])
-            r_list.append(correlation_coefficient(x,y))
-        print(r_list)
-            #if len(r_list) == 3:
+            # print('y : ', y)
+
+            r = correlation_coefficient(x,y)
+            # print('r : ',r)
+            r_list.append(r)
+            r_dict.update({'r_{}'.format(foreignvisitor_list[0]):r})
+        
+        tour_spot_dict.update(r_dict) # 완성된 하나의 관광명소 상관계수 딕셔너리
+        results.append(tour_spot_dict.copy()) # 완성된 하나의 관광명소 딕셔너리를 카피해서 리스트에 추가
+        # results.append(tour_spot_dict)
+        print(results)
+    return results
+
+            # if foreignvisitor_list[0] == '미국':
+            #     results.append(r_dict)
+            # tour_spot_dict.update(r_dict)
+        # print(tour_spot_dict)
+        # results.append(tour_spot_dict)
+    # print(results)    # print(tour_spot_dict)
+
+    # #         #if len(r_list) == 3:
             # country_name = foreignvisitor_table['country_name'].unique().item(0)
              #r = ss.pearsonr(x, y)[0] # 방문 빈도 계수 구하기
              #r = np.corrcoef(x, y)[0]

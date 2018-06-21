@@ -1,6 +1,8 @@
 import sys
 from collect import crawler as collection
 from config import CONFIG
+import pandas as pd
+import matplotlib.pyplot as plt
 import visualize
 import analize
 import collect
@@ -30,7 +32,14 @@ if __name__ == '__main__':
 
     #analysis
     #result_analysis = analize.analysis_correlation(resultfiles)
+
     result_analysis = analize.analysis_correlation_by_tourspot(resultfiles)
+    # # print(result_analysis)
+    graph_table = pd.DataFrame(result_analysis, columns=['tourspot', 'r_중국', 'r_일본', 'r_미국'])
+    graph_table = graph_table.set_index('tourspot')
+
+    graph_table.plot(kind='bar')
+    plt.show()
     #print(result_analysis)
 
     #visualize
